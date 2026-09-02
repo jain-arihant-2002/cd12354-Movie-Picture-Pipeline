@@ -40,13 +40,10 @@ jobs:
       - run: npm ci
       - run: CI=true npm test
 
-  build:
-    name: Build
+  build-and-push:
+    name: Build and Push to ECR
     needs: [lint, test]
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: starter/frontend
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -54,15 +51,12 @@ jobs:
           node-version: 18
           cache: "npm"
           cache-dependency-path: starter/frontend/package-lock.json
-      - run: npm ci
-      - run: docker build --build-arg=REACT_APP_MOVIE_API_URL=http://localhost:5000 --tag=mp-frontend:${{ github.sha }} .
-
-  push:
-    name: Push to ECR
-    needs: [build]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
+      - name: Install dependencies
+        working-directory: starter/frontend
+        run: npm ci
+      - name: Build Docker image
+        working-directory: starter/frontend
+        run: docker build --build-arg=REACT_APP_MOVIE_API_URL=http://localhost:5000 --tag=mp-frontend:${{ github.sha }} .
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
@@ -79,7 +73,7 @@ jobs:
 
   deploy:
     name: Deploy to EKS
-    needs: [push]
+    needs: [build-and-push]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3

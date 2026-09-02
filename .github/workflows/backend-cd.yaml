@@ -38,23 +38,15 @@ jobs:
       - run: pipenv install --dev
       - run: pipenv run test
 
-  build:
-    name: Build
+  build-and-push:
+    name: Build and Push to ECR
     needs: [lint, test]
     runs-on: ubuntu-latest
-    defaults:
-      run:
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build Docker image
         working-directory: starter/backend
-    steps:
-      - uses: actions/checkout@v3
-      - run: docker build --tag=mp-backend:${{ github.sha }} .
-
-  push:
-    name: Push to ECR
-    needs: [build]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
+        run: docker build --tag=mp-backend:${{ github.sha }} .
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
@@ -71,7 +63,7 @@ jobs:
 
   deploy:
     name: Deploy to EKS
-    needs: [push]
+    needs: [build-and-push]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
