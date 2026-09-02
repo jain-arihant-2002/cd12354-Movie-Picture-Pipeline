@@ -1,0 +1,2 @@
+Backend : http://af2f1f0f7480b497cbd416b2b7397115-959349346.us-east-1.elb.amazonaws.com/movies/
+Frontend: http://af2f1f0f7480b497cbd416b2b7397115-959349346.us-east-1.elb.amazonaws.com/movies/
